@@ -4,7 +4,6 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use sdl2::rwops::RWops;
-use sdl2::ttf::Sdl2TtfContext;
 use std::collections::LinkedList;
 use std::time::{Duration, Instant};
 use rand::Rng;
