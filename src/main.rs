@@ -6,6 +6,7 @@ use std::collections::LinkedList;
 use termion::{event::Key, input::TermRead};
 use termion::cursor::Hide;
 use termion::screen::IntoAlternateScreen;
+use termion::raw::IntoRawMode;
 use rand::Rng;
 
 #[derive(PartialEq, Copy, Clone)]
