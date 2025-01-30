@@ -3,9 +3,9 @@ use std::thread;
 use std::time::Duration;
 use std::collections::LinkedList;
 
-use termion::{event::Key, input::TermRead, raw::IntoRawMode};
+use termion::{event::Key, input::TermRead};
 use termion::cursor::Hide;
-use termion::screen::AlternateScreen;
+use termion::screen::IntoAlternateScreen;
 use rand::Rng;
 
 #[derive(PartialEq, Copy, Clone)]
@@ -83,7 +83,7 @@ impl Game {
         }
     }
 
-    fn draw(&self, screen: &mut AlternateScreen<termion::raw::RawTerminal<io::Stdout>>) {
+    fn draw(&self, screen: &mut impl Write) {
         write!(screen, "{}", termion::clear::All).unwrap();
 
         // Draw borders
@@ -109,16 +109,24 @@ impl Game {
 }
 
 fn main() {
-    let stdout = io::stdout().into_raw_mode().unwrap();
-    let mut screen = AlternateScreen::from(stdout);
+    // Initialize terminal
+    let stdout = io::stdout()
+        .into_raw_mode()
+        .unwrap()
+        .into_alternate_screen()
+        .unwrap();
+
+    let mut screen = stdout;
     write!(screen, "{}", Hide).unwrap();
 
+    // Initialize game
     let (width, height) = termion::terminal_size().unwrap();
     let mut game = Game::new(width, height);
 
     let stdin = io::stdin();
     let mut keys = stdin.keys();
 
+    // Game loop
     while !game.game_over {
         game.draw(&mut screen);
 
@@ -140,6 +148,7 @@ fn main() {
         thread::sleep(timeout);
     }
 
+    // Game over screen
     write!(screen, "{}Game Over! Press 'q' to quit", termion::cursor::Goto(width / 2 - 5, height / 2)).unwrap();
     screen.flush().unwrap();
 
