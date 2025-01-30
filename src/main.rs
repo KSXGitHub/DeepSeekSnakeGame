@@ -3,6 +3,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
+use sdl2::rwops::RWops;
 use sdl2::ttf::Sdl2TtfContext;
 use std::collections::LinkedList;
 use std::time::{Duration, Instant};
@@ -13,6 +14,9 @@ const GRID_WIDTH: u32 = 30;
 const GRID_HEIGHT: u32 = 20;
 const WINDOW_WIDTH: u32 = GRID_SIZE * GRID_WIDTH;
 const WINDOW_HEIGHT: u32 = GRID_SIZE * GRID_HEIGHT;
+
+// Embed the font file into the binary
+const FONT_DATA: &[u8] = include_bytes!("arial.ttf");
 
 #[derive(Clone, Copy, PartialEq)]
 enum Direction {
@@ -141,7 +145,7 @@ impl Game {
         }
     }
 
-    fn render(&self, canvas: &mut WindowCanvas, ttf_context: &Sdl2TtfContext) -> Result<(), String> {
+    fn render(&self, canvas: &mut WindowCanvas, font: &sdl2::ttf::Font) -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
 
@@ -156,7 +160,6 @@ impl Game {
         canvas.fill_rect(self.food.rect)?;
 
         // Draw score
-        let font = ttf_context.load_font("arial.ttf", 24)?;
         let surface = font
             .render(&format!("Score: {}", self.score))
             .blended(Color::RGB(255, 255, 255))
@@ -198,6 +201,10 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
+
+    // Load the font from the embedded byte array
+    let rwops = RWops::from_bytes(FONT_DATA).map_err(|e| e.to_string())?;
+    let font = ttf_context.load_font_from_rwops(rwops, 24)?;
 
     let window = video_subsystem
         .window("Snake Game", WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -263,7 +270,7 @@ fn main() -> Result<(), String> {
         }
 
         // Render
-        game.render(&mut canvas, &ttf_context)?;
+        game.render(&mut canvas, &font)?;
     }
 
     Ok(())
